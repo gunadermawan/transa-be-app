@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\LoginRequest;
 use App\Models\Business;
 use App\Models\Outlet;
 use App\Models\User;
@@ -60,18 +61,15 @@ class AuthController extends Controller
     }
 
     // login
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
-
         $user = User::where('email', $request->email)->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             return response()->json([
-                'message' => 'Invalid credentials',
+                'success' => false,
+                'code' => 401,
+                'message' => 'Email atau password salah'
             ], 401);
         }
 
@@ -81,8 +79,16 @@ class AuthController extends Controller
             'success' => true,
             'code' => 200,
             'message' => 'Login berhasil',
-            'access_token' => $token,
-            'data' => $user,
+            // 'data' => $user,
+            'data' => [
+                'access_token' => $token,
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role_id' => $user->role_id,
+                'business_id' => $user->business_id,
+                'outlet_id' => $user->outlet_id,
+            ]
         ]);
     }
 
